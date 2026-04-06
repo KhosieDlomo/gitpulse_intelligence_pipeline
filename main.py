@@ -1,9 +1,16 @@
 import json
 import os
 import requests
+import re
+import nltk
+nltk.download('punkt', quiet=True)
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from typing import List, Dict
+
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lsa import LsaSummarizer
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -96,10 +103,10 @@ class NotificationProvider:
         message_content += "--- Top Trending Python Repositories ---\n\n"
 
         for repo in top_repos:
-            message_content += f"🔹 **{repo['name']}**\n"
-            message_content += f"   🏷️ Label: `{repo['label']}`\n"
-            message_content += f"   ⭐ Stars: {repo['stars']}\n"
-            message_content += f"   🔗 [View Repository](<{repo['link']}>)\n\n"
+            message_content += f"🔹 **{repo['name']}** (`{repo['label']}`)\n"
+            
+            message_content += f"📝 *{repo.get('summary', 'Processing...') }*\n"
+            message_content += f"⭐ Stars: {repo['stars']} | 🔗 [View Repository](<{repo['link']}>)\n\n"
 
         payload = {"content": message_content}
 
@@ -109,6 +116,38 @@ class NotificationProvider:
             print("[SUCCESS] Notification sent to Discord!")
         except Exception as e:
             print(f"[ERROR] Failed to send Discord notification: {e}")
+
+class LocalSummarizer:
+    """Summarizes text locally without external NLTK dependencies."""
+    def summarize(self, text: str) -> str:
+        if not text or len(text) < 50:
+            return "No detailed description available."
+        
+        try:
+           #REMOVE HTML TAGS (like <img...>)
+            clean = re.sub(r'<[^>]*>', '', text)
+            
+            #REMOVE MARKDOWN LINKS & IMAGES [text](url) or ![alt](url)
+            clean = re.sub(r'!\[.*?\]\(.*?\)', '', clean)
+            clean = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', clean)
+            
+            # REMOVE REMAINING MARKDOWN NOISE (#, *, >, `)
+            clean = re.sub(r'[#*>`-]', '', clean)
+            
+            # REMOVE EXTRA WHITESPACE
+            clean = " ".join(clean.split())
+            
+            # SPLIT INTO SENTENCES
+            sentences = clean.split(". ")
+            if len(sentences) > 0:
+                # Get the first 2 sentences
+                summary = ". ".join(sentences[:2]).strip()
+                return (summary[:180] + '..') if len(summary) > 180 else (summary + ".")
+            
+            return "See README for full details."
+        except Exception:
+            return "Error parsing description."
+        
 
 # --- EXECUTION FLOW ---
 if __name__ == "__main__":
@@ -128,18 +167,22 @@ if __name__ == "__main__":
             processed_item = transformer.process(repo)
             final_list.append(processed_item)
 
-        print("\n--- Step 3: Deep Analysis (READMEs) ---")
-        for item in final_list[:5]: # Limit to top 5 for demo
+        # Initialize the AI
+        summarizer = LocalSummarizer()
+
+        print("\n--- Step 3: Deep Analysis & AI Summarization ---")
+        for item in final_list[:5]:
             original_repo = next(r for r in raw_results if r['name'] == item['name'])
             owner = original_repo['owner']['login']
             
             readme = extractor.get_readme_content(owner, item['name'])
-            print(f"Analyzing {item['name']}... (README Length: {len(readme)} characters)")
             
-            enriched_data = transformer.process(original_repo, readme)
-            item['label'] = enriched_data['label'] 
+            # GET THE SUMMARY
+            item['summary'] = summarizer.summarize(readme)
             
-            print(f"   Updated Label: {item['label']}")
+            # RE-LABEL based on README
+            item['label'] = transformer.process(original_repo, readme)['label']
+            print(f"Summarized {item['name']}...")
 
         # Final Summary
         print("\n--- FINAL RESULTS (Top 5) ---")
