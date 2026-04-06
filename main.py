@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from typing import List, Dict
 
+from database import GitPulseDB
+
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lsa import LsaSummarizer
@@ -190,14 +192,17 @@ if __name__ == "__main__":
             print(f"Repo: {item['name']} | Stars: {item['stars']} | Final Label: {item['label']}")
 
         # --- Step 4: Storage Layer (Data Persistence) ---
-        output_file = "trending_repos.json"
+        print("\n--- Step 4: Archiving to Local Database ---")
         try:
-            with open(output_file, "w", encoding="utf-8") as f:
-                # Save the top 5 with their enriched labels
-                json.dump(final_list[:5], f, indent=4)
-            print(f"\n[SUCCESS] Data persisted to {output_file}")
+            # Initialize the database (creates gitpulse.db if it doesn't exist)
+            db = GitPulseDB() 
+            
+            # Save the top 5 enriched repos
+            db.save_trending(final_list[:5])
+            
+            print(f"[SUCCESS] Data persisted to gitpulse.db")
         except Exception as e:
-            print(f"\n[STORAGE ERROR] Could not save file: {e}")
+            print(f"[DATABASE ERROR] Could not save to SQLite: {e}")
 
         # --- Step 5: Notification Layer ---
         notifier = NotificationProvider(DISCORD_WEBHOOK_URL)
