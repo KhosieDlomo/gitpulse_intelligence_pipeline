@@ -7,6 +7,7 @@ from typing import List, Dict
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 class GitHubExtractor:
     """Handles API communication.
@@ -81,6 +82,34 @@ class DataTransformer:
         # Fallback: If no keywords found, it's General
         return best_category if scores[best_category] > 0 else "General"
 
+class NotificationProvider:
+    """Handles outgoing communication to Discord."""
+    def __init__(self, webhook_url: str):
+        self.webhook_url = webhook_url
+        
+    def send_to_discord(self, top_repos: List[Dict]):
+        if not self.webhook_url:
+            print("Error: No Discord Webhook URL found.")
+            return
+        
+        message_content = "🚀 **GitPulse Daily Intelligence Update** 🚀\n"
+        message_content += "--- Top Trending Python Repositories ---\n\n"
+
+        for repo in top_repos:
+            message_content += f"🔹 **{repo['name']}**\n"
+            message_content += f"   🏷️ Label: `{repo['label']}`\n"
+            message_content += f"   ⭐ Stars: {repo['stars']}\n"
+            message_content += f"   🔗 [View Repository](<{repo['link']}>)\n\n"
+
+        payload = {"content": message_content}
+
+        try:
+            response = requests.post(self.webhook_url, json=payload)
+            response.raise_for_status()
+            print("[SUCCESS] Notification sent to Discord!")
+        except Exception as e:
+            print(f"[ERROR] Failed to send Discord notification: {e}")
+
 # --- EXECUTION FLOW ---
 if __name__ == "__main__":
     if not GITHUB_TOKEN:
@@ -126,3 +155,8 @@ if __name__ == "__main__":
             print(f"\n[SUCCESS] Data persisted to {output_file}")
         except Exception as e:
             print(f"\n[STORAGE ERROR] Could not save file: {e}")
+
+        # --- Step 5: Notification Layer ---
+        notifier = NotificationProvider(DISCORD_WEBHOOK_URL)
+        # We only send the top 5 to keep the chat clean
+        notifier.send_to_discord(final_list[:5])  
