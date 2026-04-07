@@ -1,0 +1,36 @@
+name: Daily GitPulse Update
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # Runs at 08:00 UTC every day (10:00 AM South Africa time)
+  workflow_dispatch: # Allows you to click a button to run it manually
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests python-dotenv
+
+      - name: Run GitPulse Intelligence
+        env:
+          GITHUB_TOKEN: ${{ secrets.GP_GITHUB_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python main.py
+
+      - name: Commit Database Changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add gitpulse.db
+          git commit -m "chore: update database with daily star counts [skip ci]" || echo "No changes to commit"
+          git push
