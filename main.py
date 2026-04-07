@@ -108,7 +108,7 @@ class NotificationProvider:
             return
         
         message_content = "🚀 **GitPulse Daily Intelligence Update** 🚀\n"
-        message_content += "--- Top Trending Python Repositories ---\n\n"
+        message_content += "--- Top Multilingual Trending Repositories Report ---\n\n"
 
         for repo in top_repos:
             lang_tag = f"🏷️ **[{repo['lang']}]**" # New tag
@@ -125,7 +125,7 @@ class NotificationProvider:
             elif growth > 20:
                 trend_emoji = "📈 *[Rising]*"
 
-            message_content += f"{trend_emoji} **{repo['name']}** (`{repo['label']}`)\n"
+            message_content += f"{lang_tag}{trend_emoji} **{repo['name']}** (`{repo['label']}`)\n"
             message_content += f"📝 *{repo.get('summary', 'Processing...') }*\n"
             message_content += f"⭐ Stars: {repo['stars']} (**{growth_str}**) | 🔗 [View](<{repo['link']}>)\n\n"
 
