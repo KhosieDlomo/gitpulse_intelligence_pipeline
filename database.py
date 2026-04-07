@@ -26,3 +26,14 @@ class GitPulseDB:
         data = [(r['name'], r['stars'], r['label'], r.get('summary', ''), now) for r in repo_list]
         self.conn.executemany(query, data)
         self.conn.commit()
+
+    def get_previous_stars(self, repo_name):
+        """Fetches the most recent star count for a specific repo."""
+        query = """
+        SELECT stars FROM repo_history 
+        WHERE repo_name = ? 
+        ORDER BY captured_at DESC LIMIT 1
+        """
+        cursor = self.conn.execute(query, (repo_name,))
+        result = cursor.fetchone()
+        return result[0] if result else None

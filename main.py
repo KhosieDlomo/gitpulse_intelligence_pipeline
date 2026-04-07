@@ -105,10 +105,20 @@ class NotificationProvider:
         message_content += "--- Top Trending Python Repositories ---\n\n"
 
         for repo in top_repos:
-            message_content += f"🔹 **{repo['name']}** (`{repo['label']}`)\n"
+            # --- Logic: Add Growth Indicators ---
+            growth = repo.get('growth', 0)
+            growth_str = f"+{growth}" if growth > 0 else "New"
             
+            # Visual flair for high growth
+            trend_emoji = "🔹"
+            if growth > 100:
+                trend_emoji = "🔥 **[EXPLOSIVE]**"
+            elif growth > 20:
+                trend_emoji = "📈 *[Rising]*"
+
+            message_content += f"{trend_emoji} **{repo['name']}** (`{repo['label']}`)\n"
             message_content += f"📝 *{repo.get('summary', 'Processing...') }*\n"
-            message_content += f"⭐ Stars: {repo['stars']} | 🔗 [View Repository](<{repo['link']}>)\n\n"
+            message_content += f"⭐ Stars: {repo['stars']} (**{growth_str}**) | 🔗 [View](<{repo['link']}>)\n\n"
 
         payload = {"content": message_content}
 
@@ -150,7 +160,6 @@ class LocalSummarizer:
         except Exception:
             return "Error parsing description."
         
-
 # --- EXECUTION FLOW ---
 if __name__ == "__main__":
     if not GITHUB_TOKEN:
@@ -163,48 +172,48 @@ if __name__ == "__main__":
         raw_results = extractor.get_trending_repos()
         
         print(f"--- Step 2: Transforming {len(raw_results)} items ---")
-        
         final_list = []
         for repo in raw_results:
             processed_item = transformer.process(repo)
             final_list.append(processed_item)
 
-        # Initialize the AI
         summarizer = LocalSummarizer()
 
         print("\n--- Step 3: Deep Analysis & AI Summarization ---")
         for item in final_list[:5]:
             original_repo = next(r for r in raw_results if r['name'] == item['name'])
             owner = original_repo['owner']['login']
-            
             readme = extractor.get_readme_content(owner, item['name'])
-            
-            # GET THE SUMMARY
             item['summary'] = summarizer.summarize(readme)
-            
-            # RE-LABEL based on README
             item['label'] = transformer.process(original_repo, readme)['label']
             print(f"Summarized {item['name']}...")
 
-        # Final Summary
-        print("\n--- FINAL RESULTS (Top 5) ---")
-        for item in final_list[:5]:
-            print(f"Repo: {item['name']} | Stars: {item['stars']} | Final Label: {item['label']}")
+        # --- STEP 4: Growth Analysis (BEFORE SAVING) ---
+        print("\n--- Step 4: Growth Analysis ---")
+        db = GitPulseDB() 
+        
+        for repo in final_list[:5]:
+            # This looks up the star count from the PREVIOUS run
+            prev_stars = db.get_previous_stars(repo['name'])
+            
+            if prev_stars:
+                # Calculate the delta between now and the last time we ran this
+                growth = repo['stars'] - prev_stars
+                repo['growth'] = growth
+                print(f"📈 {repo['name']}: +{growth} stars since last check.")
+            else:
+                repo['growth'] = 0
+                print(f"🆕 {repo['name']}: First time tracking this repo.")
 
-        # --- Step 4: Storage Layer (Data Persistence) ---
-        print("\n--- Step 4: Archiving to Local Database ---")
+        # --- STEP 5: Storage Layer (NOW WE ARCHIVE) ---
+        print("\n--- Step 5: Archiving to Local Database ---")
         try:
-            # Initialize the database (creates gitpulse.db if it doesn't exist)
-            db = GitPulseDB() 
-            
-            # Save the top 5 enriched repos
+            # Now that we've compared the data, we can save today's numbers
             db.save_trending(final_list[:5])
-            
             print(f"[SUCCESS] Data persisted to gitpulse.db")
         except Exception as e:
             print(f"[DATABASE ERROR] Could not save to SQLite: {e}")
 
-        # --- Step 5: Notification Layer ---
+        # --- Step 6: Notification Layer ---
         notifier = NotificationProvider(DISCORD_WEBHOOK_URL)
-        # We only send the top 5 to keep the chat clean
-        notifier.send_to_discord(final_list[:5])  
+        notifier.send_to_discord(final_list[:5])
