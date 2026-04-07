@@ -111,6 +111,9 @@ class NotificationProvider:
         message_content += "--- Top Trending Python Repositories ---\n\n"
 
         for repo in top_repos:
+            lang_tag = f"🏷️ **[{repo['lang']}]**" # New tag
+            growth = repo.get('growth', 0)
+
             # --- Logic: Add Growth Indicators ---
             growth = repo.get('growth', 0)
             growth_str = f"+{growth}" if growth > 0 else "New"
@@ -169,57 +172,39 @@ class LocalSummarizer:
 # --- EXECUTION FLOW ---
 if __name__ == "__main__":
     if not GITHUB_TOKEN:
-        print("CRITICAL ERROR: No token found. Check your .env file.")
+        print("CRITICAL ERROR: No token found.")
     else:
         extractor = GitHubExtractor(GITHUB_TOKEN)
         transformer = DataTransformer()
-
-        print("--- Step 1: Extracting ---")
-        raw_results = extractor.get_trending_repos()
-        
-        print(f"--- Step 2: Transforming {len(raw_results)} items ---")
-        final_list = []
-        for repo in raw_results:
-            processed_item = transformer.process(repo)
-            final_list.append(processed_item)
-
         summarizer = LocalSummarizer()
+        db = GitPulseDB() # Initialize the database connection once
 
-        print("\n--- Step 3: Deep Analysis & AI Summarization ---")
-        for item in final_list[:5]:
-            original_repo = next(r for r in raw_results if r['name'] == item['name'])
-            owner = original_repo['owner']['login']
-            readme = extractor.get_readme_content(owner, item['name'])
-            item['summary'] = summarizer.summarize(readme)
-            item['label'] = transformer.process(original_repo, readme)['label']
-            print(f"Summarized {item['name']}...")
+        target_languages = ["python", "java", "cpp"]
+        final_list = []
 
-        # --- STEP 4: Growth Analysis (BEFORE SAVING) ---
-        print("\n--- Step 4: Growth Analysis ---")
-        db = GitPulseDB() 
+        for lang in target_languages:
+            print(f"--- Step 1: Extracting {lang.upper()} ---")
+            raw_results = extractor.get_trending_repos(language=lang)
         
-        for repo in final_list[:5]:
-            # This looks up the star count from the PREVIOUS run
-            prev_stars = db.get_previous_stars(repo['name'])
+            print(f"--- Step 2: Transforming {len(raw_results)} items ---")
+            for repo in raw_results[:2]:
+                processed_item = transformer.process(repo)
+                processed_item['lang'] = lang.upper()
+
+                print("\n--- Step 3: Deep Analysis & AI Summarization ---")
+                owner = repo['owner']['login']
+                readme = extractor.get_readme_content(owner, processed_item['name'])
+                processed_item['summary'] = summarizer.summarize(readme)
             
-            if prev_stars:
-                # Calculate the delta between now and the last time we ran this
-                growth = repo['stars'] - prev_stars
-                repo['growth'] = growth
-                print(f"📈 {repo['name']}: +{growth} stars since last check.")
-            else:
-                repo['growth'] = 0
-                print(f"🆕 {repo['name']}: First time tracking this repo.")
+                # This looks up the star count from the PREVIOUS run
+                prev_stars = db.get_previous_stars(processed_item['name'])
+                processed_item['growth'] = (processed_item['stars'] - prev_stars) if prev_stars else 0  
+                
+                final_list.append(processed_item)
 
-        # --- STEP 5: Storage Layer (NOW WE ARCHIVE) ---
-        print("\n--- Step 5: Archiving to Local Database ---")
-        try:
-            # Now that we've compared the data, we can save today's numbers
-            db.save_trending(final_list[:5])
-            print(f"[SUCCESS] Data persisted to gitpulse.db")
-        except Exception as e:
-            print(f"[DATABASE ERROR] Could not save to SQLite: {e}")
+        # --- STEP 5: Saving all collected languages and notify ---
+        print(f"\n--- Step 5: Archiving {len(final_list)} items and Notifying ---")
+        db.save_trending(final_list)
 
-        # --- Step 6: Notification Layer ---
         notifier = NotificationProvider(DISCORD_WEBHOOK_URL)
-        notifier.send_to_discord(final_list[:5])
+        notifier.send_to_discord(final_list)
