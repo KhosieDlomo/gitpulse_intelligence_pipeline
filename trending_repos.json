@@ -1,0 +1,37 @@
+[
+    {
+        "name": "OpenHarness",
+        "stars": 6153,
+        "link": "https://github.com/HKUDS/OpenHarness",
+        "label": "Web Dev",
+        "summary": "&nbsp; oh \u2014 OpenHarness: Open Agent Harness English \u00b7 \u7b80\u4f53\u4e2d\u6587 OpenHarness delivers core lightweight agent infrastructure: tooluse, skills, memory, and multiagent coordination. Join th.."
+    },
+    {
+        "name": "ai-agent-deep-dive",
+        "stars": 5192,
+        "link": "https://github.com/tvytlx/ai-agent-deep-dive",
+        "label": "AI/ML",
+        "summary": "AI Agent Deep Dive Quick Links PDF \u4e0b\u8f7d / PDF Report: aiagentdeepdivev2.1.pdf \u65b0\u589e\u7b2c\u516b\u7ae0\uff1a\u8bb0\u5fc6\u7cfb\u7edf aiagentdeepdivev2.pdf Notes \u672c\u4ed3\u5e93\u4ec5\u4fdd\u7559\u9762\u5411\u5b66\u4e60\u4e0e\u8bc4\u8bba\u7684\u5206\u6790\u6750\u6599\uff0c\u4e0d\u63d0\u4f9b\u6e90\u7801\u76ee\u5f55\u3002 \u7b2c\u4e8c\u7248 PDF \u5df2\u5b8c\u6210\u3002 Teaching Agent Code \u8fd9\u4e2a\u4ed3\u5e93.."
+    },
+    {
+        "name": "caveman",
+        "stars": 3715,
+        "link": "https://github.com/JuliusBrussee/caveman",
+        "label": "Web Dev",
+        "summary": "caveman why use many token when few do trick Install \u2022 Benchmarks \u2022 Before/After \u2022 Intensity Levels \u2022 Compress \u2022 Why A Claude Code skill/plugin and Codex plugin that makes agent ta.."
+    },
+    {
+        "name": "autoagent",
+        "stars": 3505,
+        "link": "https://github.com/kevinrgu/autoagent",
+        "label": "AI/ML",
+        "summary": "We're launching a product around selfconfiguring agents soon. Sign up here.We're hiring engineers."
+    },
+    {
+        "name": "ex-skill",
+        "stars": 2935,
+        "link": "https://github.com/therealXiaomanChu/ex-skill",
+        "label": "Web Dev",
+        "summary": "\u524d\u4efb.skill \"\u4f60\u4eec\u641e\u5927\u6a21\u578b\u7684\u7b80\u76f4\u662f\u7801\u795e\uff0c\u4f60\u4eec\u89e3\u653e\u4e86\u524d\u7aef\u5144\u5f1f\uff0c\u8fd8\u8981\u89e3\u653e\u540e\u7aef\u5144\u5f1f\uff0c\u6d4b\u8bd5\u5144\u5f1f\uff0c\u8fd0\u7ef4\u5144\u5f1f\uff0c\u89e3\u653e\u7f51\u5b89\u5144\u5f1f\uff0c\u89e3\u653eic\u5144\u5f1f\uff0c\u6700\u540e\u89e3\u653e\u81ea\u5df1\u89e3\u653e\u5168\u4eba\u7c7b\" \u6211\u4f1a\u4e3a\u4e86\u4f60\u4e00\u4e07\u6b21\u56de\u5230\u90a3\u4e2a\u590f\u5929\u3002 &nbsp; \u63d0\u4f9b\u524d\u4efb\u7684\u539f\u6750\u6599\uff08\u5fae\u4fe1\u804a\u5929\u8bb0\u5f55\u3001QQ\u6d88\u606f\u3001\u670b\u53cb\u5708\u622a\u56fe\u3001\u7167\u7247\uff09\u52a0\u4e0a\u4f60\u7684\u4e3b\u89c2\u63cf\u8ff0 \u751f\u6210\u4e00\u4e2a\u771f\u6b63\u50cfta\u7684 AI Skill \u7528ta\u7684\u53e3\u5934\u7985\u8bf4\u8bdd\uff0c\u7528ta\u7684\u65b9\u5f0f\u56de\u590d\u4f60.."
+    }
+]
