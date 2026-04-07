@@ -3,12 +3,18 @@ import os
 import requests
 import re
 import nltk
-nltk.download('punkt', quiet=True)
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from typing import List, Dict
 
 from database import GitPulseDB
+
+# Create a local folder for NLTK data so GitHub Actions can find it
+nltk_data_path = os.path.join(os.getcwd(), 'nltk_data')
+os.makedirs(nltk_data_path, exist_ok=True)
+nltk.data.path.append(nltk_data_path)
+
+nltk.download('punkt', download_dir=nltk_data_path, quiet=True)
 
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
