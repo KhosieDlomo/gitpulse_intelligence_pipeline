@@ -19,7 +19,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install requests python-dotenv
+          pip install -r requirements.txt
 
       - name: Run GitPulse Intelligence
         env:
