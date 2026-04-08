@@ -2,8 +2,8 @@ name: Daily GitPulse Update
 
 on:
   schedule:
-    - cron: '0 8 * * *' # Runs at 08:00 UTC every day (10:00 AM South Africa time)
-  workflow_dispatch: # Allows you to click a button to run it manually
+    - cron: '0 8 * * *' # Runs at 10:00 AM South Africa time
+  workflow_dispatch: 
 
 jobs:
   run-pipeline:
@@ -15,11 +15,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Install Dependencies
         run: |
           pip install -r requirements.txt
+          python -m nltk.downloader punkt
 
       - name: Run GitPulse Intelligence
         env:
@@ -31,6 +32,6 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add gitpulse.db
+          git add data/gitpulse.db
           git commit -m "chore: update database with daily star counts [skip ci]" || echo "No changes to commit"
           git push
