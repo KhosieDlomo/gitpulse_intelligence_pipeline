@@ -10,7 +10,7 @@ st.set_page_config(page_title="GitPulse Intelligence", page_icon="🚀", layout=
 db = GitPulseDB("data/gitpulse.db")
 
 def load_data():
-    query = "SELECT repo_name, stars, label, summary, captured_at FROM repo_history ORDER BY captured_at DESC"
+    query = "SELECT repo_name, stars, label, language, summary, captured_at FROM repo_history ORDER BY captured_at DESC"
     df = pd.read_sql(query, db.conn)
     return df
 
@@ -36,10 +36,9 @@ if not data.empty:
     with col1:
         st.subheader(f"Latest Discoveries: {selected_cat}")
         for _, row in filtered_df.head(10).iterrows():
-            with st.expander(f"⭐ {row['stars']} | {row['repo_name']}"):
+            with st.expander(f"🏷️{row['language']}|⭐ {row['stars']} | {row['repo_name']}"):
                 st.write(f"**Category:** `{row['label']}`")
                 st.write(f"**AI Summary:** {row['summary']}")
-                st.caption(f"Captured on: {row['captured_at']}")
 
     with col2:
         st.subheader("Language Distribution")

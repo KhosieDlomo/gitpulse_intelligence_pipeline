@@ -13,6 +13,7 @@ class GitPulseDB:
             repo_name TEXT,
             stars INTEGER,
             label TEXT,
+            language TEXT,
             summary TEXT,
             captured_at TIMESTAMP
         )
@@ -22,8 +23,8 @@ class GitPulseDB:
 
     def save_trending(self, repo_list):
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        query = "INSERT INTO repo_history (repo_name, stars, label, summary, captured_at) VALUES (?, ?, ?, ?, ?)"
-        data = [(r['name'], r['stars'], r['label'], r.get('summary', ''), now) for r in repo_list]
+        query = "INSERT INTO repo_history (repo_name, stars, label, language, summary, captured_at) VALUES (?, ?, ?, ?, ?, ?)"
+        data = [(r['name'], r['stars'], r['label'], r.get('lang', 'Unknown'), r.get('summary', ''), now) for r in repo_list]
         self.conn.executemany(query, data)
         self.conn.commit()
 

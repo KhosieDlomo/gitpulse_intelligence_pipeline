@@ -32,7 +32,9 @@ class DataTransformer:
         scores = {
             "AI/ML": text.count("ai") + text.count("model") + text.count("inference"),
             "Automation": text.count("automate") + text.count("workflow") + text.count("ci/cd"),
-            "Web Dev": text.count("http") + text.count("api") + text.count("frontend")
+            "Web Dev": text.count("http") + text.count("api") + text.count("frontend"),
+            "3D/Graphics": text.count("render") + text.count("shader") + text.count("opengl") + text.count("vulkan"),
+            "Formal Logic": text.count("proof") + text.count("solver") + text.count("sat") + text.count("smt")
         }
         
         # Logic: Pick the category with the highest 'Score'
