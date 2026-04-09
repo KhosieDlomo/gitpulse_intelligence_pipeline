@@ -22,6 +22,9 @@ jobs:
           pip install -r requirements.txt
           python -m nltk.downloader punkt
 
+      - name: Run Tests
+        run: pytest tests/
+
       - name: Run GitPulse Intelligence
         env:
           GITHUB_TOKEN: ${{ secrets.GP_GITHUB_TOKEN }}
