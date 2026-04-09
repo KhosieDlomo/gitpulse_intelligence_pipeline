@@ -23,7 +23,7 @@ jobs:
           python -m nltk.downloader punkt
 
       - name: Run Tests
-        run: pytest tests/
+        run: pytest 
 
       - name: Run GitPulse Intelligence
         env:
